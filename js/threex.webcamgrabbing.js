@@ -76,7 +76,8 @@ THREEx.WebcamGrabbing = function(){
         }, 500)
 
         // get the media sources
-        MediaStreamTrack.getSources(function(sourceInfos) {
+        navigator.mediaDevices.enumerateDevices()
+    .then((sourceInfos) => {
                 // define getUserMedia() constraints
                 var constraints = {
                         video: true,
@@ -98,11 +99,10 @@ THREEx.WebcamGrabbing = function(){
                 }
 
                 // try to get user media
-                navigator.getUserMedia( constraints, function(stream){
-                        domElement.src = URL.createObjectURL(stream);
-                }, function(error) {
-                        console.error("Cant getUserMedia()! due to ", error);
-                });
+                navigator.mediaDevices.getUserMedia(constraints).then(stream => {
+                        domElement.srcObject = stream;
+                })
+         
         });
 
 	this.domElement = domElement

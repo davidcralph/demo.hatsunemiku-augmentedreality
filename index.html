@@ -125,27 +125,6 @@
 		markerObject3D.add( mesh );
 	})()
 
-	// add a awesome logo to the scene
-	;(function(){
-		// return
-		var material = new THREE.SpriteMaterial({
-			map: THREE.ImageUtils.loadTexture( 'images/awesome.png' ),
-		});
-		var geometry = new THREE.BoxGeometry(1,1,1)
-		var object3d = new THREE.Sprite(material );
-		object3d.scale.set( 1, 1, 1 ).multiplyScalar(1.3)
-		object3d.position.z	= 1.4
-		markerObject3D.add(object3d)
-
-		onRenderFcts.push(function(now, delta){
-			var angle = Math.PI * now / 1000;
-			object3d.position.z	= 1.4 + Math.cos(angle)*0.1
-
-			var angle = Math.PI * now / 1000;
-			object3d.position.x	= 0 + Math.sin(angle)*0.1
-		})
-	})()
-
 	;(function(){
 		var loader = new THREE.MMDLoader();
 		var modelUrl = 'models/miku/'
