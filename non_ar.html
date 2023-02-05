@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+  <head> </head>
+  <body>
+    <canvas id="canvas"></canvas>
+    <script async src="vendor/ammo/ammo.wasm.js"></script>
+    <script
+      async
+      src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"
+    ></script>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three/build/three.module.js"
+        }
+      }
+    </script>
+    <script type="module">
+      import { MMDLoader } from "https://unpkg.com/three/examples/jsm/loaders/MMDLoader.js";
+      import { MMDAnimationHelper } from "https://unpkg.com/three/examples/jsm/animation/MMDAnimationHelper.js";
+      import * as THREE from "three";
+
+      import { EffectComposer } from "https://raw.githack.com/mrdoob/three.js/master/examples/jsm/postprocessing/EffectComposer.js";
+      import { SSAOPass } from "https://raw.githack.com/mrdoob/three.js/master/examples/jsm/postprocessing/SSAOPass.js";
+      import { SMAAPass } from "https://raw.githack.com/mrdoob/three.js/master/examples/jsm/postprocessing/SMAAPass.js";
+
+      Ammo().then(function (AmmoLib) {
+        Ammo = AmmoLib;
+        init();
+      });
+
+      const init = () => {
+        const clock = new THREE.Clock();
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(
+          45,
+          window.innerWidth / window.innerHeight,
+          1,
+          2000
+        );
+        camera.position.z = 30;
+        camera.position.y = 11;
+
+        const renderer = new THREE.WebGLRenderer({
+          antialias: true,
+          alpha: true,
+          powerPreference: "high-performance",
+        });
+        renderer.physicallyCorrectLights = true;
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // lights
+        (function () {
+          var object3d = new THREE.AmbientLight(0x101010);
+          object3d.name = "Ambient light";
+          scene.add(object3d);
+          var object3d = new THREE.DirectionalLight("white", 0.1 * 1.6);
+          object3d.position.set(2.6, 1, 3).setLength(1);
+          object3d.name = "Back light";
+          scene.add(object3d);
+
+          var object3d = new THREE.DirectionalLight("white", 0.375 * 1.6);
+          object3d.position.set(-2, -1, 0);
+          object3d.name = "Key light";
+          scene.add(object3d);
+          var object3d = new THREE.DirectionalLight("white", 0.8 * 1);
+          object3d.position.set(3, 3, 2);
+          object3d.name = "Fill light";
+          scene.add(object3d);
+        })();
+
+        //////////////////////////////////////////////////////////////////////////////////
+        //		post fx					//
+        //////////////////////////////////////////////////////////////////////////////////
+        var composer = new EffectComposer(renderer);
+
+        const ssaoPass = new SSAOPass(
+          scene,
+          camera,
+          window.innerWidth,
+          window.innerHeight
+        );
+        ssaoPass.kernelRadius = 16;
+        composer.addPass(ssaoPass);
+        const smaaPass = new SMAAPass(
+          window.innerWidth * renderer.getPixelRatio(),
+          window.innerHeight * renderer.getPixelRatio()
+        );
+        composer.addPass(smaaPass);
+
+        // MMD
+        const loader = new MMDLoader();
+        const helper = new MMDAnimationHelper({ afterglow: 2.0 });
+        let ikHelper, physicsHelper;
+        loader.loadWithAnimation(
+          "models/miku/miku_v2.pmd",
+          "models/miku/wavefile_v2.vmd",
+          (mmd) => {
+            scene.add(mmd.mesh);
+            helper.add(mmd.mesh, {
+              animation: mmd.animation,
+              physics: true,
+            });
+
+            ikHelper = helper.objects.get(mmd.mesh).ikSolver.createHelper();
+            ikHelper.visible = false;
+            scene.add(ikHelper);
+
+            physicsHelper = helper.objects.get(mmd.mesh).physics.createHelper();
+            physicsHelper.visible = false;
+            scene.add(physicsHelper);
+          }
+        );
+
+        function render() {
+          requestAnimationFrame(render);
+          renderer.render(scene, camera);
+          composer.render();
+        }
+        render();
+
+        function animate() {
+          requestAnimationFrame(animate);
+          helper.update(clock.getDelta());
+          renderer.render(scene, camera);
+          composer.render();
+        }
+        animate();
+
+        // handle window resize
+        window.addEventListener(
+          "resize",
+          function () {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+          },
+          false
+        );
+      };
+    </script>
+  </body>
+</html>
