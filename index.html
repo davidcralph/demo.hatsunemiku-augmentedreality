@@ -1,231 +1,274 @@
 <!DOCTYPE html>
 <!-- include three.js -->
-<script src="vendor/three.js/build/three.min.js"></script>
-
-<script src="vendor/three.js/examples/js/loaders/MMDLoader.js"></script>
-
-<script src="vendor/three.js/src/extras/animation/MorphAnimation2.js"></script>
-<script src="vendor/three.js/src/extras/animation/CCDIKSolver.js"></script>
-
 
 <!-- include js-aruco -->
-<script src='vendor/js-aruco/svd.js'></script>
-<script src='vendor/js-aruco/posit1-patched.js'></script>
-<script src='vendor/js-aruco/cv.js'></script>
-<script src='vendor/js-aruco/aruco.js'></script>
+<script src="vendor/js-aruco/svd.js"></script>
+<script src="vendor/js-aruco/posit1-patched.js"></script>
+<script src="vendor/js-aruco/cv.js"></script>
+<script src="vendor/js-aruco/aruco.js"></script>
 
 <!-- include some extensions -->
-<script src='js/threex.webcamgrabbing.js'></script>
-<script src='js/threex.imagegrabbing.js'></script>
-<script src='js/threex.videograbbing.js'></script>
-<script src='js/threex.jsarucomarker.js'></script>
+<script src="js/threex.webcamgrabbing.js"></script>
+<script src="js/threex.imagegrabbing.js"></script>
+<script src="js/threex.videograbbing.js"></script>
+<script src="js/threex.jsarucomarker.js"></script>
 
-<body style='margin: 0px; overflow: hidden; text-align:center;'>
+<body style="margin: 0px; overflow: hidden; text-align: center">
+  <div
+    id="info"
+    style="
+      position: absolute;
+      top: 0px;
+      width: 100%;
+      font-family: arial;
+      font-weight: bolder;
+      padding-top: 5px;
+    "
+  >
+    Augmented Reality with
+    <a href="http://threejs.org" target="_blank">three.js</a> - works on desktop
+    and mobile - require <a href="https://get.webgl.org/">WebGL</a> and
+    <a href="http://caniuse.com/#feat=stream">getUserMedia</a> Support
+    <br />
+    Source:
+    <a class="webcam" href="javascript:void();">webcam</a> -
+    <a class="image" href="javascript:void();">image</a> -
+    <a class="video" href="javascript:void();">video</a>
+  </div>
 
-<div id='info' style='position: absolute; top: 0px; width: 100%;font-family:arial; font-weight: bolder; padding-top: 5px;'>
-	Augmented Reality with <a href="http://threejs.org" target="_blank">three.js</a>
-	- works on desktop and mobile
-	- require <a href='https://get.webgl.org/'>WebGL</a> and <a href='http://caniuse.com/#feat=stream'>getUserMedia</a> Support
-	<br/>
-	Source:
-	<a class='webcam' href='javascript:void();'>webcam</a> -
-	<a class='image'  href='javascript:void();'>image</a> -
-	<a class='video'  href='javascript:void();'>video</a>
-</div>
+  <script async src="vendor/ammo/ammo.wasm.js"></script>
+  <script
+    async
+    src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"
+  ></script>
 
-<script>
-	//////////////////////////////////////////////////////////////////////////////////
-	//		Handle ui button
-	//////////////////////////////////////////////////////////////////////////////////
-	document.querySelector('#info .webcam').addEventListener('click', function(event){
-		location.hash	= '#webcam'
-		location.reload()
-	})
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three/build/three.module.js"
+      }
+    }
+  </script>
+  <script type="module">
+    import { MMDLoader } from "https://unpkg.com/three/examples/jsm/loaders/MMDLoader.js";
+    import { MMDAnimationHelper } from "https://unpkg.com/three/examples/jsm/animation/MMDAnimationHelper.js";
+    import * as THREE from "three";
 
-	document.querySelector('#info .image').addEventListener('click', function(event){
-		location.hash	= '#image'
-		location.reload()
-	})
+    Ammo().then(function (AmmoLib) {
+      Ammo = AmmoLib;
+    });
 
-	document.querySelector('#info .video').addEventListener('click', function(event){
-		location.hash	= '#video'
-		location.reload()
-	})
+    //////////////////////////////////////////////////////////////////////////////////
+    //		Handle ui button
+    //////////////////////////////////////////////////////////////////////////////////
+    document
+      .querySelector("#info .webcam")
+      .addEventListener("click", function (event) {
+        location.hash = "#webcam";
+        location.reload();
+      });
 
+    document
+      .querySelector("#info .image")
+      .addEventListener("click", function (event) {
+        location.hash = "#image";
+        location.reload();
+      });
 
+    document
+      .querySelector("#info .video")
+      .addEventListener("click", function (event) {
+        location.hash = "#video";
+        location.reload();
+      });
 
-	//////////////////////////////////////////////////////////////////////////////////
-	//		Init Sound
-	//////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////
+    //		Init Sound
+    //////////////////////////////////////////////////////////////////////////////////
 
-	var soundUrl = 'sounds/wavefile_short.mp3'
-	var audio = new Audio(soundUrl);
-	audio.play();
+    var soundUrl = "sounds/wavefile_short.mp3";
+    var audio = new Audio(soundUrl);
+    audio.play();
 
-	//////////////////////////////////////////////////////////////////////////////////
-	//		Init
-	//////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////
+    //		Init
+    //////////////////////////////////////////////////////////////////////////////////
 
-	// init renderer
-	var renderer	= new THREE.WebGLRenderer({
-		antialias	: true,
-		alpha		: true,
-	});
-	renderer.setSize( window.innerWidth, window.innerHeight );
-	document.body.appendChild( renderer.domElement );
+    // init renderer
+    var renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
 
-	// array of functions for the rendering loop
-	var onRenderFcts = [];
+    // array of functions for the rendering loop
+    var onRenderFcts = [];
 
-	// init scene and camera
-	var scene = new THREE.Scene()
-	var camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.01, 1000);
-	camera.position.z = 0;
+    // init scene and camera
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(
+      40,
+      window.innerWidth / window.innerHeight,
+      0.01,
+      1000
+    );
+    camera.position.z = 0;
 
-	var markerObject3D = new THREE.Object3D
-	scene.add(markerObject3D)
+    var markerObject3D = new THREE.Object3D();
+    scene.add(markerObject3D);
 
-	//////////////////////////////////////////////////////////////////////////////////
-	//		set 3 point lighting						//
-	//////////////////////////////////////////////////////////////////////////////////
-	;(function(){
-		var object3d	= new THREE.AmbientLight(0x101010)
-		object3d.name	= 'Ambient light'
-		scene.add(object3d)
-		var object3d	= new THREE.DirectionalLight('white', 0.1*1.6)
-		object3d.position.set(2.6,1,3).setLength(1)
-		object3d.name	= 'Back light'
-		scene.add(object3d)
+    //////////////////////////////////////////////////////////////////////////////////
+    //		set 3 point lighting						//
+    //////////////////////////////////////////////////////////////////////////////////
+    (function () {
+      var object3d = new THREE.AmbientLight(0x101010);
+      object3d.name = "Ambient light";
+      scene.add(object3d);
+      var object3d = new THREE.DirectionalLight("white", 0.1 * 1.6);
+      object3d.position.set(2.6, 1, 3).setLength(1);
+      object3d.name = "Back light";
+      scene.add(object3d);
 
-		var object3d	= new THREE.DirectionalLight('white', 0.375*1.6)
-		object3d.position.set(-2, -1, 0)
-		object3d.name 	= 'Key light'
-		scene.add(object3d)
-		var object3d	= new THREE.DirectionalLight('white', 0.8*1)
-		object3d.position.set(3, 3, 2)
-		object3d.name	= 'Fill light'
-		scene.add(object3d)
-	})()
+      var object3d = new THREE.DirectionalLight("white", 0.375 * 1.6);
+      object3d.position.set(-2, -1, 0);
+      object3d.name = "Key light";
+      scene.add(object3d);
+      var object3d = new THREE.DirectionalLight("white", 0.8 * 1);
+      object3d.position.set(3, 3, 2);
+      object3d.name = "Fill light";
+      scene.add(object3d);
+    })();
 
+    //////////////////////////////////////////////////////////////////////////////////
+    //		add an object in the scene
+    //////////////////////////////////////////////////////////////////////////////////
+    const clock = new THREE.Clock();
 
-	//////////////////////////////////////////////////////////////////////////////////
-	//		add an object in the scene
-	//////////////////////////////////////////////////////////////////////////////////
+    // add some debug display
+    (function () {
+      var geometry = new THREE.PlaneGeometry(1, 1, 10, 10);
+      var material = new THREE.MeshBasicMaterial({
+        wireframe: true,
+      });
+      var mesh = new THREE.Mesh(geometry, material);
+      markerObject3D.add(mesh);
 
-	// add some debug display
-	;(function(){
-		var geometry = new THREE.PlaneGeometry(1,1,10,10)
-		var material = new THREE.MeshBasicMaterial( {
-			wireframe : true
-		})
-		var mesh = new THREE.Mesh(geometry, material);
-		markerObject3D.add( mesh );
+      var mesh = new THREE.AxesHelper();
+      markerObject3D.add(mesh);
+    })();
+    (function () {
+      let ikHelper, physicsHelper;
 
-		var mesh = new THREE.AxisHelper
-		markerObject3D.add( mesh );
-	})()
+      var loader = new MMDLoader();
+      const helper = new MMDAnimationHelper({ afterglow: 2.0 });
+      var modelUrl = "models/miku/";
+      loader.loadWithAnimation(
+        modelUrl + "miku_v2.pmd",
+        modelUrl + "wavefile_v2.vmd",
+        function onLoad(mmd) {
+          mmd.mesh.scale.set(1, 1, 1).multiplyScalar(1 / 20);
+          mmd.mesh.rotation.x = Math.PI / 2;
 
-	;(function(){
-		var loader = new THREE.MMDLoader();
-		var modelUrl = 'models/miku/'
-		loader.load( modelUrl+'miku_v2.pmd', modelUrl+'wavefile_v2.vmd', function onLoad(mesh){
+          markerObject3D.add(mmd.mesh);
+          helper.add(mmd.mesh, {
+            animation: mmd.animation,
+            physics: true,
+          });
 
-			mesh.scale.set(1,1,1).multiplyScalar(1/20)
-			mesh.rotation.x = Math.PI/2
+          ikHelper = helper.objects.get(mmd.mesh).ikSolver.createHelper();
+          ikHelper.visible = false;
+          scene.add(ikHelper);
 
-			markerObject3D.add( mesh );
+          physicsHelper = helper.objects.get(mmd.mesh).physics.createHelper();
+          physicsHelper.visible = false;
+          scene.add(physicsHelper);
 
-			var animation = new THREE.Animation( mesh, mesh.geometry.animation );
-			animation.play();
+          onRenderFcts.push(function (now, delta) {
+            helper.update(clock.getDelta());
+          });
+        },
+        function onProgress(xhr) {
+          if (xhr.lengthComputable) {
+            var percentComplete = (xhr.loaded / xhr.total) * 100;
+            console.log(Math.round(percentComplete, 2) + "% downloaded");
+          }
+        },
+        function onError(xhr) {}
+      );
+    })();
 
-			var morphAnimation = new THREE.MorphAnimation2( mesh, mesh.geometry.morphAnimation );
-			morphAnimation.play();
+    //////////////////////////////////////////////////////////////////////////////////
+    //		render the whole thing on the page
+    //////////////////////////////////////////////////////////////////////////////////
 
-			var ikSolver = new THREE.CCDIKSolver( mesh );
+    // handle window resize
+    window.addEventListener(
+      "resize",
+      function () {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+      },
+      false
+    );
 
-			onRenderFcts.push(function(now, delta){
-				THREE.AnimationHandler.update( delta/1000 );
-				ikSolver.update();
-			})
-		}, function onProgress(xhr){
-			if ( xhr.lengthComputable ) {
-				var percentComplete = xhr.loaded / xhr.total * 100;
-				console.log( Math.round(percentComplete, 2) + '% downloaded' );
-			}
-		}, function onError( xhr ) {
-		} );
-	})()
+    // render the scene
+    onRenderFcts.push(function () {
+      renderer.render(scene, camera);
+    });
 
-	//////////////////////////////////////////////////////////////////////////////////
-	//		render the whole thing on the page
-	//////////////////////////////////////////////////////////////////////////////////
+    // run the rendering loop
+    var previousTime = performance.now();
+    requestAnimationFrame(function animate(now) {
+      requestAnimationFrame(animate);
 
-	// handle window resize
-	window.addEventListener('resize', function(){
-		renderer.setSize( window.innerWidth, window.innerHeight )
-		camera.aspect	= window.innerWidth / window.innerHeight
-		camera.updateProjectionMatrix()
-	}, false)
+      onRenderFcts.forEach(function (onRenderFct) {
+        onRenderFct(now, now - previousTime);
+      });
 
+      previousTime = now;
+    });
 
-	// render the scene
-	onRenderFcts.push(function(){
-		renderer.render( scene, camera );
-	})
+    //////////////////////////////////////////////////////////////////////////////////
+    //		Do the Augmented Reality Upgrade
+    //////////////////////////////////////////////////////////////////////////////////
 
-	// run the rendering loop
-	var previousTime = performance.now()
-	requestAnimationFrame(function animate(now){
+    // init the marker recognition
+    var jsArucoMarker = new THREEx.JsArucoMarker();
 
-		requestAnimationFrame( animate );
+    // if no specific image source is specified, take the webcam by default
+    if (location.hash === "") location.hash = "#image";
 
-		onRenderFcts.forEach(function(onRenderFct){
-			onRenderFct(now, now - previousTime)
-		})
+    // init the image source grabbing
+    if (location.hash === "#video") {
+      var videoGrabbing = new THREEx.VideoGrabbing();
+      jsArucoMarker.videoScaleDown = 10;
+    } else if (location.hash === "#webcam") {
+      var videoGrabbing = new THREEx.WebcamGrabbing();
+      jsArucoMarker.videoScaleDown = 2;
+    } else if (location.hash === "#image") {
+      var videoGrabbing = new THREEx.ImageGrabbing();
+      jsArucoMarker.videoScaleDown = 10;
+    } else console.assert(false);
 
-		previousTime	= now
-	})
+    // attach the videoGrabbing.domElement to the body
+    document.body.appendChild(videoGrabbing.domElement);
 
-	//////////////////////////////////////////////////////////////////////////////////
-	//		Do the Augmented Reality Upgrade
-	//////////////////////////////////////////////////////////////////////////////////
+    // process the image source with the marker recognition
+    onRenderFcts.push(function () {
+      var domElement = videoGrabbing.domElement;
+      var markers = jsArucoMarker.detectMarkers(domElement);
+      var object3d = markerObject3D;
 
+      object3d.visible = false;
 
-	// init the marker recognition
-	var jsArucoMarker	= new THREEx.JsArucoMarker()
+      // see if this.markerId has been found
+      markers.forEach(function (marker) {
+        jsArucoMarker.markerToObject3D(marker, object3d);
 
-	// if no specific image source is specified, take the webcam by default
-	if( location.hash === '' )	location.hash = '#image'
-
-	// init the image source grabbing
-	if( location.hash === '#video' ){
-		var videoGrabbing = new THREEx.VideoGrabbing()
-		jsArucoMarker.videoScaleDown = 10
-	}else if( location.hash === '#webcam' ){
-		var videoGrabbing = new THREEx.WebcamGrabbing()
-		jsArucoMarker.videoScaleDown = 2
-	}else if( location.hash === '#image' ){
-		var videoGrabbing = new THREEx.ImageGrabbing()
-		jsArucoMarker.videoScaleDown = 10
-	}else console.assert(false)
-
-	// attach the videoGrabbing.domElement to the body
-        document.body.appendChild(videoGrabbing.domElement)
-
-	// process the image source with the marker recognition
-	onRenderFcts.push(function(){
-		var domElement	= videoGrabbing.domElement
-		var markers	= jsArucoMarker.detectMarkers(domElement)
-		var object3d	= markerObject3D
-
-		object3d.visible = false
-
-		// see if this.markerId has been found
-		markers.forEach(function(marker){
-
-			jsArucoMarker.markerToObject3D(marker, object3d)
-
-			object3d.visible = true
-		})
-	})
-</script></body>
+        object3d.visible = true;
+      });
+    });
+  </script>
+</body>
