@@ -54,6 +54,17 @@
     import { MMDAnimationHelper } from "https://unpkg.com/three/examples/jsm/animation/MMDAnimationHelper.js";
     import * as THREE from "three";
 
+    //////////////////////////////////////////////////////////////////////////////////
+    // EFFECTS - it's not ray-mmd, but it'll do
+    //////////////////////////////////////////////////////////////////////////////////
+    import { EffectComposer } from "https://raw.githack.com/mrdoob/three.js/master/examples/jsm/postprocessing/EffectComposer.js";
+    import { SSAOPass } from "https://raw.githack.com/mrdoob/three.js/master/examples/jsm/postprocessing/SSAOPass.js";
+    import { SMAAPass } from "https://raw.githack.com/mrdoob/three.js/master/examples/jsm/postprocessing/SMAAPass.js";
+
+    //////////////////////////////////////////////////////////////////////////////////
+    //	Physics!
+    //////////////////////////////////////////////////////////////////////////////////
+
     Ammo().then(function (AmmoLib) {
       Ammo = AmmoLib;
     });
@@ -98,7 +109,9 @@
     var renderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: true,
+      powerPreference: "high-performance",
     });
+    renderer.physicallyCorrectLights = true;
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
@@ -141,6 +154,23 @@
     })();
 
     //////////////////////////////////////////////////////////////////////////////////
+    //		post fx					//
+    //////////////////////////////////////////////////////////////////////////////////
+    var composer = new EffectComposer(renderer);
+
+    const ssaoPass = new SSAOPass(
+      scene,
+      camera,
+      window.innerWidth,
+      window.innerHeight
+    );
+    ssaoPass.kernelRadius = 16;
+    composer.addPass(ssaoPass);
+    const smaaPass = new SMAAPass( window.innerWidth * renderer.getPixelRatio(), window.innerHeight * renderer.getPixelRatio() );
+    composer.addPass(smaaPass);
+
+
+    //////////////////////////////////////////////////////////////////////////////////
     //		add an object in the scene
     //////////////////////////////////////////////////////////////////////////////////
     const clock = new THREE.Clock();
@@ -155,7 +185,8 @@
         modelUrl + "miku_v2.pmd",
         modelUrl + "wavefile_v2.vmd",
         function onLoad(mmd) {
-          mmd.mesh.scale.set(1, 1, 1).multiplyScalar(8 / 20);
+          // miku size in scalar before /, don't modify rotation x, modify y and z to rotate on stage
+          mmd.mesh.scale.set(1, 1, 1).multiplyScalar(2 / 20);
           mmd.mesh.rotation.x = Math.PI / 2;
           mmd.mesh.rotation.y = 0;
           mmd.mesh.rotation.z = 0.5;
@@ -206,6 +237,7 @@
     // render the scene
     onRenderFcts.push(function () {
       renderer.render(scene, camera);
+      composer.render();
     });
 
     // run the rendering loop
@@ -250,7 +282,6 @@
       var domElement = videoGrabbing.domElement;
       var markers = jsArucoMarker.detectMarkers(domElement);
       var object3d = markerObject3D;
-
 
       // see if this.markerId has been found
       markers.forEach(function (marker) {
