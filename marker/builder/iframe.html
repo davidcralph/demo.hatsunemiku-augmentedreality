@@ -4,7 +4,7 @@
   body {
   	margin:0;
   	overflow: hidden;
-    /*width: 450px;*/*/
+    /*width: 450px;*/
     
 	}
 
@@ -30,11 +30,11 @@
     }
 
     var element = document.getElementById('marker');
-    element.innerHTML = new ArucoMarker(id).toSVG('100%');
+    element.innerHTML = new ArucoMarker(id).toSVG('75%');
     
     setInterval(function(){
       var domElement = document.querySelector('#marker svg')
-      element.style.height = window.innerHeight-120+'px'
+      element.style.height = window.innerHeight-0+'px'
     }, 100)
   </script>
 </body>

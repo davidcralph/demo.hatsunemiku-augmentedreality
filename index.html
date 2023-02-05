@@ -3,7 +3,7 @@
 
 <!-- include js-aruco -->
 <script src="vendor/js-aruco2/svd.js"></script>
-<script src="vendor/js-aruco2/posit1-patched.js"></script>
+<script src="vendor/js-aruco2/posit2.js"></script>
 <script src="vendor/js-aruco2/cv.js"></script>
 <script src="vendor/js-aruco2/aruco.js"></script>
 
@@ -145,18 +145,6 @@
     //////////////////////////////////////////////////////////////////////////////////
     const clock = new THREE.Clock();
 
-    // add some debug display
-    (function () {
-      var geometry = new THREE.PlaneGeometry(1, 1, 10, 10);
-      var material = new THREE.MeshBasicMaterial({
-        wireframe: true,
-      });
-      var mesh = new THREE.Mesh(geometry, material);
-      markerObject3D.add(mesh);
-
-      var mesh = new THREE.AxesHelper();
-      markerObject3D.add(mesh);
-    })();
     (function () {
       let ikHelper, physicsHelper;
 
@@ -167,9 +155,10 @@
         modelUrl + "miku_v2.pmd",
         modelUrl + "wavefile_v2.vmd",
         function onLoad(mmd) {
-          mmd.mesh.scale.set(1, 1, 1).multiplyScalar(1 / 20);
+          mmd.mesh.scale.set(1, 1, 1).multiplyScalar(8 / 20);
           mmd.mesh.rotation.x = Math.PI / 2;
-		  mmd.mesh.rotation.y = 10;
+          mmd.mesh.rotation.y = 0;
+          mmd.mesh.rotation.z = 0.5;
 
           markerObject3D.add(mmd.mesh);
           helper.add(mmd.mesh, {
@@ -262,13 +251,10 @@
       var markers = jsArucoMarker.detectMarkers(domElement);
       var object3d = markerObject3D;
 
-      object3d.visible = false;
 
       // see if this.markerId has been found
       markers.forEach(function (marker) {
         jsArucoMarker.markerToObject3D(marker, object3d);
-
-        object3d.visible = true;
       });
     });
   </script>

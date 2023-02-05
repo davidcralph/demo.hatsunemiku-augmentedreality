@@ -4,6 +4,7 @@ var THREEx = THREEx || {}
  * Handle jsaruco markers
  * @constructor
  */
+var gotOnce = false;
 THREEx.JsArucoMarker = function(){
 	var _this = this
 
@@ -37,6 +38,10 @@ THREEx.JsArucoMarker = function(){
 	 * @return {Object[]} - array of found markers
 	 */
 	this.detectMarkers	= function(videoElement){
+		// angry
+		if (gotOnce) {
+			return [];
+		}
 		// if domElement is a video
 		if( videoElement instanceof HTMLVideoElement ){
 			// if no new image for videoElement do nothing
@@ -182,3 +187,12 @@ THREEx.JsArucoMarker = function(){
 		}
 	};
 }
+
+
+  document.addEventListener('keyup', event => {
+	if (event.code === 'Space') {
+		if (gotOnce) {
+			gotOnce = false;
+		} else gotOnce = true;
+	}
+  })
