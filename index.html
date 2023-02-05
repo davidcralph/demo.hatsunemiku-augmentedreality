@@ -186,10 +186,10 @@
         modelUrl + "wavefile_v2.vmd",
         function onLoad(mmd) {
           // miku size in scalar before /, don't modify rotation x, modify y and z to rotate on stage
-          mmd.mesh.scale.set(1, 1, 1).multiplyScalar(2 / 20);
+          mmd.mesh.scale.set(1, 1, 1).multiplyScalar(1.5 / 20);
           mmd.mesh.rotation.x = Math.PI / 2;
-          mmd.mesh.rotation.y = 0;
-          mmd.mesh.rotation.z = 0.5;
+          mmd.mesh.rotation.y = 4;
+          mmd.mesh.rotation.z = 0;
 
           markerObject3D.add(mmd.mesh);
           helper.add(mmd.mesh, {
@@ -228,6 +228,7 @@
       "resize",
       function () {
         renderer.setSize(window.innerWidth, window.innerHeight);
+        composer.setSize(window.innerWidth, window.innerHeight);
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
       },
