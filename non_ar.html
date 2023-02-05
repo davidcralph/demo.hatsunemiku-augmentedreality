@@ -94,9 +94,10 @@
         const loader = new MMDLoader();
         const helper = new MMDAnimationHelper({ afterglow: 2.0 });
         let ikHelper, physicsHelper;
+        var modelUrl = "models/yyb/";
         loader.loadWithAnimation(
-          "models/miku/miku_v2.pmd",
-          "models/miku/wavefile_v2.vmd",
+            modelUrl + "YYB Hatsune Miku_default_1.0ver.pmx",
+        modelUrl + "wavefile_v2.vmd",
           (mmd) => {
             scene.add(mmd.mesh);
             helper.add(mmd.mesh, {
